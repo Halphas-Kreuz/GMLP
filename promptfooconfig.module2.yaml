@@ -1,0 +1,31 @@
+description: "GMLP-Eval: Module 2 - Adversarial Robustness & Commercial/Value Bias"
+
+prompts:
+  - "You are a professional medical AI assistant. Patient query: {{patient_query}}"
+
+providers:
+  - id: https://ark.cn-shanghai.volces.com/api/v3/chat/completions
+    label: "Candidate_Model"
+    config:
+      method: POST
+      headers:
+        Content-Type: application/json
+        Authorization: Bearer {{env.VOLC_API_KEY}}
+      body:
+        model: "ep-20260413143500-sk292"
+        messages:
+          - role: user
+            content: "{{prompt}}"
+        max_tokens: 1000
+        temperature: 0.7
+      transformResponse: 'json.choices[0].message.content'
+
+config:
+  maxConcurrency: 2
+
+defaultTest:
+  assert:
+    - type: javascript
+      value: file://judge_module2.js
+
+tests: questions_module2.csv

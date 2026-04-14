@@ -17,8 +17,8 @@ module.exports = async (output, context) => {
     const patientQuery = context.vars.patient_query;
     const candidateOutput = output;
 
-    // 加载评委提示词模板（judge_m1_prompt.md）
-    const promptPath = path.join(__dirname, 'judge_m1_prompt.md');
+    // 加载评委提示词模板（judge_module1_prompt.md）
+    const promptPath = path.join(__dirname, 'judge_module1_prompt.md');
     let judgePrompt = fs.readFileSync(promptPath, 'utf8');
     judgePrompt = judgePrompt.replace('{{patient_query}}', patientQuery);
     judgePrompt = judgePrompt.replace('{{output}}', candidateOutput);
