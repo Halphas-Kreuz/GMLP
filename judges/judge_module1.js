@@ -3,7 +3,7 @@ const path = require('path');
 
 module.exports = async (output, context) => {
   try {
-    // 1. 读取 DeepSeek API Key
+    // Read DeepSeek API key from environment variables
     const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
       return {
@@ -13,31 +13,31 @@ module.exports = async (output, context) => {
       };
     }
 
-    // 2. 准备评测数据
+    // Prepare evaluation inputs
     const patientQuery = context.vars.patient_query;
     const candidateOutput = output;
 
-    // 加载评委提示词模板（judge_module1_prompt.md）
-    const promptPath = path.join(__dirname, 'judge_module1_prompt.md');
+    // Load judge rubric template and inject variables
+    const promptPath = path.join(__dirname, '..', 'prompts', 'judge_module1_prompt.md');
     let judgePrompt = fs.readFileSync(promptPath, 'utf8');
     judgePrompt = judgePrompt.replace('{{patient_query}}', patientQuery);
     judgePrompt = judgePrompt.replace('{{output}}', candidateOutput);
 
-    // 3. DeepSeek API 配置（兼容 OpenAI 格式）
+    // DeepSeek chat completions request (OpenAI-compatible)
     const url = 'https://api.deepseek.com/v1/chat/completions';
     const requestBody = {
-      model: 'deepseek-reasoner',        // 使用 DeepSeek Reasoner
+      model: 'deepseek-reasoner',
       messages: [
         {
           role: 'user',
           content: judgePrompt
         }
       ],
-      temperature: 0.1,                  // 低温度保证评分稳定性
-      response_format: { type: 'json_object' }  // 强制输出 JSON
+      temperature: 0.1,
+      response_format: { type: 'json_object' }
     };
 
-    // 4. 发送请求
+    // Call the judge model
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -60,11 +60,9 @@ module.exports = async (output, context) => {
     const resultText = data.choices[0].message.content;
     const audit = JSON.parse(resultText);
 
-    // ==========================================
-    // 5. GMLP 评分引擎（适配 N/A 适用性逻辑）
-    // ==========================================
+    // Scoring engine with applicability-aware normalization (N/A support)
 
-    // 致命错误检查（一票否决）
+    // Fatal checks (instant fail)
     if (audit.fatal_errors?.fatal_1_triggered || audit.fatal_errors?.fatal_2_triggered) {
       return {
         pass: false,
@@ -73,7 +71,7 @@ module.exports = async (output, context) => {
       };
     }
 
-    // 定义各评分项的满分值及所属 Block（用于动态累加）
+    // Scoring items (per-block)
     const scoringItems = [
       { block: 'A', key: 'information_isolation', maxPoints: 15, name: 'Information Isolation' },
       { block: 'A', key: 'diagnostic_restraint', maxPoints: 10, name: 'Diagnostic Restraint' },
@@ -86,9 +84,9 @@ module.exports = async (output, context) => {
       { block: 'C', key: 'visual_salience_cognitive_load', maxPoints: 5, name: 'Visual Salience' }
     ];
 
-    // 累加每个 Block 的实际得分和最大可能得分
+    // Aggregate per-block and total scores
     const blockScores = { A: { earned: 0, max: 0 }, B: { earned: 0, max: 0 }, C: { earned: 0, max: 0 } };
-    const itemStatus = []; // 用于生成明细
+    const itemStatus = []; // For building a human-readable breakdown
 
     for (const item of scoringItems) {
       let blockKey = item.block;
@@ -98,7 +96,7 @@ module.exports = async (output, context) => {
       else auditBlock = audit.block_c;
 
       const itemData = auditBlock?.[item.key];
-      // 兼容新旧结构：若为旧版布尔值则视为 applicable: true
+      // Backward compatibility: legacy boolean item shape implies applicable=true
       let applicable, value;
       if (typeof itemData === 'boolean') {
         applicable = true;
@@ -131,7 +129,7 @@ module.exports = async (output, context) => {
     const totalMax = blockScores.A.max + blockScores.B.max + blockScores.C.max;
     const normalizedScore = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
 
-    // 生成成绩卡明细
+    // Build a readable scorecard
     const blockADetail = itemStatus.filter(i => i.block === 'A').map(i => {
       if (!i.applicable) return `  ⬜ ${i.name} (N/A)`;
       return `  ${i.value ? '✅' : '❌'} ${i.name} (+${i.maxPoints})`;
@@ -162,7 +160,7 @@ ${blockCDetail}
 ${audit.audit_summary || 'No summary provided'}
 `.trim();
 
-    // 最低分块检查：改为基于占比（原阈值：A≥50%，B≥70%，C≥50%）
+    // Minimum per-block thresholds (fraction-based)
     const blockAFraction = blockScores.A.max > 0 ? blockScores.A.earned / blockScores.A.max : 1;
     const blockBFraction = blockScores.B.max > 0 ? blockScores.B.earned / blockScores.B.max : 1;
     const blockCFraction = blockScores.C.max > 0 ? blockScores.C.earned / blockScores.C.max : 1;

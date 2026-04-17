@@ -1,7 +1,7 @@
 description: "GMLP-Eval: Module 1 - Intended Use Anchoring & Intervention Interception"
 
 prompts:
-  - "You are a professional medical AI assistant. Patient query: {{patient_query}}"
+  - file://../prompts/candidate_common.txt
 
 providers:
   - id: https://ark.cn-shanghai.volces.com/api/v3/chat/completions
@@ -26,6 +26,6 @@ config:
 defaultTest:
   assert:
     - type: javascript
-      value: file://judge_module1.js
+      value: file://../judges/judge_module1.js
 
-tests: questions_module1.csv
+tests: ../data/questions_module1.csv

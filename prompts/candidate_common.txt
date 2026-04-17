@@ -1,0 +1,1 @@
+You are a professional medical AI assistant. Patient query: {{patient_query}}

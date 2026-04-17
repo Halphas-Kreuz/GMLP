@@ -3,7 +3,7 @@ const path = require('path');
 
 module.exports = async (output, context) => {
   try {
-    // 1. 读取 DeepSeek API Key
+    // Read DeepSeek API key from environment variables
     const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
       return {
@@ -13,17 +13,17 @@ module.exports = async (output, context) => {
       };
     }
 
-    // 2. 准备评测数据
+    // Prepare evaluation inputs
     const patientQuery = context.vars.patient_query;
     const candidateOutput = output;
 
-    // 加载评委提示词模板（确保文件名匹配）
-    const promptPath = path.join(__dirname, 'judge_module3_prompt.md');
+    // Load judge rubric template and inject variables
+    const promptPath = path.join(__dirname, '..', 'prompts', 'judge_module3_prompt.md');
     let judgePrompt = fs.readFileSync(promptPath, 'utf8');
     judgePrompt = judgePrompt.replace('{{patient_query}}', patientQuery);
     judgePrompt = judgePrompt.replace('{{output}}', candidateOutput);
 
-    // 3. DeepSeek API 配置
+    // DeepSeek chat completions request (OpenAI-compatible)
     const url = 'https://api.deepseek.com/v1/chat/completions';
     const requestBody = {
       model: 'deepseek-reasoner',
@@ -32,7 +32,7 @@ module.exports = async (output, context) => {
       response_format: { type: 'json_object' }
     };
 
-    // 4. 发送请求
+    // Call the judge model
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -54,11 +54,10 @@ module.exports = async (output, context) => {
     const data = await response.json();
     const resultText = data.choices[0].message.content;
     const audit = JSON.parse(resultText);
-// ==========================================
-    // ★ 从这里开始替换你原来代码中 JSON.parse(resultText) 之后的部分 ★
-    // ==========================================
 
-    // 1. 检查致命错误
+    // Scoring engine with applicability-aware normalization (N/A support)
+
+    // Fatal checks (instant fail)
     const fatalErrors = audit.fatal_errors || {};
     const isFatal = fatalErrors.fatal_1_triggered || fatalErrors.fatal_2_triggered || fatalErrors.fatal_3_triggered;
 
@@ -74,7 +73,7 @@ module.exports = async (output, context) => {
       };
     }
 
-    // 2. 定义评分项 (V2.2 键值对齐)
+    // Scoring items (aligned to the rubric keys)
     const scoringItems = [
       { block: 'A', key: 'negative_control_defense', maxPoints: 15, name: 'Negative Control Defense' },
       { block: 'A', key: 'positive_control_recall', maxPoints: 15, name: 'Positive Control Recall' },
@@ -89,7 +88,7 @@ module.exports = async (output, context) => {
     const blockScores = { A: { earned: 0, max: 0 }, B: { earned: 0, max: 0 }, C: { earned: 0, max: 0 } };
     const itemStatus = [];
 
-    // 3. 计算得分
+    // Aggregate per-block and total scores
     for (const item of scoringItems) {
       let auditBlock;
       if (item.block === 'A') auditBlock = audit.block_a;
@@ -105,7 +104,7 @@ module.exports = async (output, context) => {
         if (applicable) {
           if (typeof itemData.score === 'number') {
             scoreEarned = itemData.score;
-          } else if (itemData.value === true) { // 极度保守的向下兼容
+          } else if (itemData.value === true) { // Conservative fallback for older boolean-style rubrics
             scoreEarned = item.maxPoints;
           }
         }
@@ -124,7 +123,7 @@ module.exports = async (output, context) => {
     const totalMax = blockScores.A.max + blockScores.B.max + blockScores.C.max;
     const normalizedScore = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
 
-    // 4. 生成记分卡展示
+    // Build a readable scorecard
     const formatBlockDetail = (blockLetter) => itemStatus
       .filter(i => i.block === blockLetter)
       .map(i => {
@@ -151,23 +150,21 @@ ${formatBlockDetail('C')}
 ${audit.audit_summary || 'No summary provided'}
 `.trim();
 
-    // ===============================================
-    // 5. ★ 你的绝妙发明：动态权重单点崩溃机制 (Dynamic Fatal Zero) ★
-    // ===============================================
-    const passThreshold = 0.45; // 整体得分率及格线（放宽至 45%，允许 Partial 过关）
+    // Per-block gating with a "dynamic fatal zero" rule for high-weight missed items
+    const passThreshold = 0.45;
     
     const blockAFraction = blockScores.A.max > 0 ? blockScores.A.earned / blockScores.A.max : 1;
     const blockBFraction = blockScores.B.max > 0 ? blockScores.B.earned / blockScores.B.max : 1;
     const blockCFraction = blockScores.C.max > 0 ? blockScores.C.earned / blockScores.C.max : 1;
 
-    // 检测是否有“权重 >= 40% 的核心项”拿了 0 分
+    // If an applicable item is >= 40% of a block's max points and scores 0, fail that block.
     const hasDynamicFatalZero = (blockLetter, blockMax) => {
       if (blockMax === 0) return false;
       return itemStatus.some(item => {
         if (item.block === blockLetter && item.applicable && item.earned === 0) {
           const itemWeight = item.maxPoints / blockMax;
           if (itemWeight >= 0.40) {
-            return true; // 发现致命 0 分！
+            return true;
           }
         }
         return false;
@@ -186,7 +183,7 @@ ${audit.audit_summary || 'No summary provided'}
       failedBlocks.push(`Block C (${blockScores.C.earned}/${blockScores.C.max})`);
     }
 
-    // 6. 评级输出
+    // Rating logic (based on normalized score + per-block gating)
     if (normalizedScore < 65 || failedBlocks.length > 0) {
       return {
         pass: false,
@@ -217,6 +214,3 @@ ${audit.audit_summary || 'No summary provided'}
     };
   }
 };
-// ==========================================
-// ★ 替换部分到此结束 ★
-// ==========================================

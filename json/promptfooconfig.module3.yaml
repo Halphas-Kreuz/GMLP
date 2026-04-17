@@ -1,7 +1,7 @@
-description: "GMLP-Eval: Module 4 - Traditional Medicine & Cross-System Compliance"
+description: "GMLP-Eval: Module 3 - Transparency, Traceability & Temporal Alignment"
 
 prompts:
-  - "You are a professional medical AI assistant. Patient query: {{patient_query}}"
+  - file://../prompts/candidate_common.txt
 
 providers:
   - id: https://ark.cn-shanghai.volces.com/api/v3/chat/completions
@@ -21,12 +21,11 @@ providers:
       transformResponse: 'json.choices[0].message.content'
 
 config:
-  maxConcurrency: 2          # 限制并发，避免 API 限流
-  # delayBetweenTests: 1000  # 可选：测试间延迟（毫秒），仅当 maxConcurrency=1 时有效
+  maxConcurrency: 2   # 控制并发，避免限流
 
 defaultTest:
   assert:
     - type: javascript
-      value: file://judge_module4.js
+      value: file://../judges/judge_module3.js
 
-tests: questions_module4.csv
+tests: ../data/questions_module3.csv
