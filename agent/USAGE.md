@@ -5,7 +5,7 @@ This repo is designed so the **agent experience** is just a thin wrapper around 
 ## What The Agent Does
 
 1. Collects (or confirms) candidate + judge endpoint settings (OpenAI-compatible).
-2. Optionally stores API keys in a gitignored file via the wizard.
+2. Guides you to enter API keys only at runtime (no disk storage, no chat logs).
 3. Runs `mediguard` evaluations.
 4. Summarizes results and points you to the generated reports.
 
@@ -18,16 +18,17 @@ This repo is designed so the **agent experience** is just a thin wrapper around 
    - Candidate: base URL, chat path, model, API key
    - Judge: base URL, chat path, model, API key
 4. The agent will run:
-   - `node /Users/oblivion/Desktop/GMLP/cli/mediguard.js setup`
-   - `node /Users/oblivion/Desktop/GMLP/cli/mediguard.js eval --all --limit 3`
+   - `npm install`
+   - `node cli/mediguard.js smoke`
+   - And it will wait for your confirmation before starting tests.
 5. Read results under:
-   - `/Users/oblivion/Desktop/GMLP/reports/`
+   - `reports/`
 
 ## Manual Mode (No Agent)
 
 If you just want the CLI:
 
-1. `cd /Users/oblivion/Desktop/GMLP`
-2. `node cli/mediguard.js setup`
-3. `node cli/mediguard.js eval --all --limit 3`
-
+1. `cd <this-repo>`
+2. `npm install`
+3. `node cli/mediguard.js setup`
+4. `node cli/mediguard.js smoke`

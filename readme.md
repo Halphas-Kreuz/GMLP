@@ -103,16 +103,29 @@
 
 This repo includes a local evaluator CLI (`mediguard`) plus an "Auditor Agent" prompt that wraps the CLI.
 
-- CLI entrypoint: `/Users/oblivion/Desktop/GMLP/cli/mediguard.js`
-- Agent prompt: `/Users/oblivion/Desktop/GMLP/agent/MEDIGUARD_AGENT_PROMPT.md`
+- CLI entrypoint: `cli/mediguard.js`
+- Agent prompt: `agent/MEDIGUARD_AGENT_PROMPT.md`
+- Start-here guide: `agent/START_HERE.md`
 
 Quick smoke test (3 cases per module):
 
 ```bash
-cd /Users/oblivion/Desktop/GMLP
-node cli/mediguard.js setup
-node cli/mediguard.js eval --all --limit 3
+cd <this-repo>
+npm install
+node cli/mediguard.js smoke
 ```
+
+`smoke` will ask for confirmation before starting tests.
+
+## What "Agent" Means Here
+
+An "agent" is just a coding assistant (Codex / Claude Code) that can:
+
+- Tell you exactly which command to run.
+- Optionally run it for you (depending on your tool permissions).
+- Read the generated files under `reports/` and summarize the compliance results.
+
+To use MediGuard in "agent mode", paste `agent/MEDIGUARD_AGENT_PROMPT.md` into your tool's custom agent/custom instructions, then ask it to run a smoke test and summarize `reports/`.
 
 ---
 

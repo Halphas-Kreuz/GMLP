@@ -1,0 +1,21 @@
+{
+  "candidate": {
+    "baseUrl": "https://api.deepseek.com",
+    "chatPath": "/v1/chat/completions",
+    "model": "deepseek-chat",
+    "apiKeyEnv": "CANDIDATE_API_KEY",
+    "preset": "deepseek"
+  },
+  "judge": {
+    "baseUrl": "https://api.deepseek.com",
+    "chatPath": "/v1/chat/completions",
+    "model": "deepseek-reasoner",
+    "apiKeyEnv": "JUDGE_API_KEY",
+    "apiKeyFallbackEnv": "DEEPSEEK_API_KEY",
+    "preset": "deepseek"
+  },
+  "outputs": {
+    "dir": "reports"
+  },
+  "version": 1
+}

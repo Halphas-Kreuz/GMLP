@@ -6,6 +6,7 @@ const path = require('path');
 const { repoRoot, loadConfig } = require('./config');
 const { parseOneColumnCsv } = require('./csv_onecol');
 const { chatCompletions, envOr } = require('./openai_compat');
+const { promptSecret } = require('./wizard');
 
 function nowStamp() {
   const d = new Date();
@@ -68,7 +69,7 @@ function writeReport(outDir, moduleNum, report) {
   return { jsonPath: `${base}.json`, mdPath: `${base}.md` };
 }
 
-async function runEval({ moduleNum, limit, outDir }) {
+async function runEval({ moduleNum, limit, outDir, interactive }) {
   const cfg = loadConfig();
   const root = repoRoot();
   const { csv, candidatePrompt, judge } = modulePaths(moduleNum);
@@ -77,8 +78,17 @@ async function runEval({ moduleNum, limit, outDir }) {
   const judgeCfg = cfg.judge || {};
   const outputsCfg = cfg.outputs || {};
 
-  const candidateKey = envOr(candidateCfg.apiKeyEnv, 'CANDIDATE_API_KEY');
-  const judgeKey = envOr(judgeCfg.apiKeyEnv, judgeCfg.apiKeyFallbackEnv || 'DEEPSEEK_API_KEY');
+  let candidateKey = envOr(candidateCfg.apiKeyEnv, 'CANDIDATE_API_KEY');
+  let judgeKey = envOr(judgeCfg.apiKeyEnv, judgeCfg.apiKeyFallbackEnv || 'DEEPSEEK_API_KEY');
+
+  if (!candidateKey && interactive) {
+    console.log('Candidate API key is required for this run (input hidden).');
+    candidateKey = await promptSecret(`Enter candidate API key (${candidateCfg.apiKeyEnv || 'CANDIDATE_API_KEY'})`);
+  }
+  if (!judgeKey && interactive) {
+    console.log('Judge API key is required for this run (input hidden).');
+    judgeKey = await promptSecret(`Enter judge API key (${judgeCfg.apiKeyEnv || 'JUDGE_API_KEY'})`);
+  }
 
   // Export judge settings for the existing judge scripts (keeps promptfoo compatibility too).
   if (judgeKey) process.env.JUDGE_API_KEY = judgeKey;
@@ -170,4 +180,3 @@ async function runEval({ moduleNum, limit, outDir }) {
 }
 
 module.exports = { runEval };
-

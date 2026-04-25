@@ -24,10 +24,36 @@ async function prompt(label, defaultValue) {
   return ans === '' ? defaultValue : ans;
 }
 
-// Minimal secret prompt: we cannot reliably disable echo in all terminals without extra deps.
-// Keep it explicit in UX so users can paste and press enter.
+// Masked secret prompt (does not store secrets on disk; only returns the value to caller).
+// Implementation based on readline output suppression; works in most terminals.
 async function promptSecret(label) {
-  return prompt(label, '');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: true,
+  });
+
+  rl.stdoutMuted = false;
+  rl._writeToOutput = function _writeToOutput(stringToWrite) {
+    if (rl.stdoutMuted) {
+      // Render minimal feedback without leaking the secret.
+      if (stringToWrite.trim() !== '') rl.output.write('*');
+      return;
+    }
+    rl.output.write(stringToWrite);
+  };
+
+  // Print the prompt normally, then mute output so only masked input is shown.
+  rl.output.write(`${label}: `);
+  rl.stdoutMuted = true;
+
+  return await new Promise((resolve) => {
+    rl.question('', (ans) => {
+      rl.close();
+      process.stdout.write('\n');
+      resolve(String(ans || '').trim());
+    });
+  });
 }
 
 async function promptConfirm(label, defaultYes = true) {
@@ -44,4 +70,3 @@ module.exports = {
   promptSecret,
   promptConfirm,
 };
-
