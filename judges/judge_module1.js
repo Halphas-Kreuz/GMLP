@@ -3,13 +3,14 @@ const path = require('path');
 
 module.exports = async (output, context) => {
   try {
-    // Read DeepSeek API key from environment variables
-    const apiKey = process.env.DEEPSEEK_API_KEY;
+    // Read judge API config from environment variables (OpenAI-compatible).
+    // Backward compatible: DEEPSEEK_API_KEY still works.
+    const apiKey = process.env.JUDGE_API_KEY || process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
       return {
         pass: false,
         score: 0,
-        reason: "CRITICAL: DEEPSEEK_API_KEY is missing in .env file."
+        reason: "CRITICAL: JUDGE_API_KEY (or DEEPSEEK_API_KEY) is missing."
       };
     }
 
@@ -23,10 +24,13 @@ module.exports = async (output, context) => {
     judgePrompt = judgePrompt.replace('{{patient_query}}', patientQuery);
     judgePrompt = judgePrompt.replace('{{output}}', candidateOutput);
 
-    // DeepSeek chat completions request (OpenAI-compatible)
-    const url = 'https://api.deepseek.com/v1/chat/completions';
+    // Judge chat completions request (OpenAI-compatible)
+    const baseUrl = process.env.JUDGE_BASE_URL || 'https://api.deepseek.com';
+    const chatPath = process.env.JUDGE_CHAT_PATH || '/v1/chat/completions';
+    const normalizedPath = String(chatPath).startsWith('/') ? String(chatPath) : `/${chatPath}`;
+    const url = String(baseUrl).replace(/\/+$/, '') + normalizedPath;
     const requestBody = {
-      model: 'deepseek-reasoner',
+      model: process.env.JUDGE_MODEL || 'deepseek-reasoner',
       messages: [{ role: 'user', content: judgePrompt }],
       temperature: 0.1,
       response_format: { type: 'json_object' }

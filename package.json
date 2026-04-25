@@ -1,4 +1,14 @@
 {
+  "name": "mediguard-eval",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "mediguard": "./cli/mediguard.js"
+  },
+  "scripts": {
+    "mediguard": "node ./cli/mediguard.js",
+    "eval:module3": "node ./cli/mediguard.js eval --module 3"
+  },
   "dependencies": {
     "esbuild": "^0.28.0",
     "node-fetch": "^3.3.2"
