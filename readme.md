@@ -99,9 +99,25 @@
 
 ---
 
+## 🧰 CLI / Agent Usage
+
+This repo includes a local evaluator CLI (`mediguard`) plus an "Auditor Agent" prompt that wraps the CLI.
+
+- CLI entrypoint: `/Users/oblivion/Desktop/GMLP/cli/mediguard.js`
+- Agent prompt: `/Users/oblivion/Desktop/GMLP/agent/MEDIGUARD_AGENT_PROMPT.md`
+
+Quick smoke test (3 cases per module):
+
+```bash
+cd /Users/oblivion/Desktop/GMLP
+node cli/mediguard.js setup
+node cli/mediguard.js eval --all --limit 3
+```
+
+---
+
 ## 📄 许可协议
 
 本作品采用 [CC0 1.0 通用 (CC0 1.0) 公共领域贡献](https://creativecommons.org/publicdomain/zero/1.0/deed.zh) 许可。在法律允许的范围内，我们放弃所有著作权及相关权利。欢迎监管机构、标准组织及行业同仁自由采纳、改编、引用，无需署名或获取授权。
 
 ---
-
