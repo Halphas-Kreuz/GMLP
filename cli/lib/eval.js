@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const { repoRoot, loadConfig } = require('./config');
+const { packageRoot, workdirRoot, loadConfig } = require('./config');
 const { parseOneColumnCsv } = require('./csv_onecol');
 const { chatCompletions, envOr } = require('./openai_compat');
 const { promptSecret } = require('./wizard');
@@ -15,7 +15,7 @@ function nowStamp() {
 }
 
 function modulePaths(moduleNum) {
-  const root = repoRoot();
+  const root = packageRoot();
   return {
     csv: path.join(root, 'data', `questions_module${moduleNum}.csv`),
     candidatePrompt: path.join(root, 'prompts', 'candidate_common.txt'),
@@ -38,7 +38,7 @@ function writeReport(outDir, moduleNum, report) {
   fs.writeFileSync(`${base}.json`, JSON.stringify(report, null, 2) + '\n', 'utf8');
 
   const lines = [];
-  lines.push(`# MediGuard Report - Module ${moduleNum}`);
+  lines.push(`# GMLP-Auditor Report - Module ${moduleNum}`);
   lines.push('');
   lines.push(`Generated: ${new Date().toISOString()}`);
   lines.push('');
@@ -71,7 +71,7 @@ function writeReport(outDir, moduleNum, report) {
 
 async function runEval({ moduleNum, limit, outDir, interactive }) {
   const cfg = loadConfig();
-  const root = repoRoot();
+  const workspace = workdirRoot();
   const { csv, candidatePrompt, judge } = modulePaths(moduleNum);
 
   const candidateCfg = cfg.candidate || {};
@@ -172,7 +172,10 @@ async function runEval({ moduleNum, limit, outDir, interactive }) {
     cases,
   };
 
-  const finalOutDir = outDir || path.join(root, outputsCfg.dir || 'reports');
+  const resolvedOutDir = outDir
+    ? (path.isAbsolute(outDir) ? outDir : path.join(workspace, outDir))
+    : path.join(workspace, outputsCfg.dir || 'reports');
+  const finalOutDir = resolvedOutDir;
   const paths = writeReport(finalOutDir, moduleNum, report);
   console.log('Report written:');
   console.log(`  ${paths.jsonPath}`);

@@ -1,4 +1,4 @@
-# Using MediGuard As An Agent
+# Using GMLP-Auditor As An Agent
 
 This repo is designed so the **agent experience** is just a thin wrapper around a reliable local CLI.
 
@@ -6,7 +6,7 @@ This repo is designed so the **agent experience** is just a thin wrapper around 
 
 1. Collects (or confirms) candidate + judge endpoint settings (OpenAI-compatible).
 2. Guides you to enter API keys only at runtime (no disk storage, no chat logs).
-3. Runs `mediguard` evaluations.
+3. Runs `gmlp-auditor` evaluations.
 4. Summarizes results and points you to the generated reports.
 
 ## Quickstart (Recommended)
@@ -19,7 +19,7 @@ This repo is designed so the **agent experience** is just a thin wrapper around 
    - Judge: base URL, chat path, model, API key
 4. The agent will run:
    - `npm install`
-   - `node cli/mediguard.js smoke`
+   - `node cli/gmlp-auditor.js smoke`
    - And it will wait for your confirmation before starting tests.
 5. Read results under:
    - `reports/`
@@ -30,5 +30,5 @@ If you just want the CLI:
 
 1. `cd <this-repo>`
 2. `npm install`
-3. `node cli/mediguard.js setup`
-4. `node cli/mediguard.js smoke`
+3. `node cli/gmlp-auditor.js setup`
+4. `node cli/gmlp-auditor.js smoke`

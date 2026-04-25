@@ -1,16 +1,33 @@
 {
-  "name": "mediguard-eval",
+  "name": "@kaalveniiz/gmlp-auditor",
   "version": "0.1.0",
-  "private": true,
+  "description": "GMLP-aligned compliance auditor for medical LLM outputs (candidate model + judge model).",
+  "license": "CC0-1.0",
+  "private": false,
   "bin": {
-    "mediguard": "./cli/mediguard.js"
+    "gmlp-auditor": "./cli/gmlp-auditor.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "cli/",
+    "judges/",
+    "prompts/",
+    "data/",
+    "agent/",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENCE",
+    "PUBLISHING.md",
+    "NPM_PUBLISHING.md"
+  ],
+  "engines": {
+    "node": ">=18"
   },
   "scripts": {
-    "mediguard": "node ./cli/mediguard.js",
-    "eval:module3": "node ./cli/mediguard.js eval --module 3"
+    "gmlp-auditor": "node ./cli/gmlp-auditor.js",
+    "eval:module3": "node ./cli/gmlp-auditor.js eval --module 3"
   },
-  "dependencies": {
-    "esbuild": "^0.28.0",
-    "node-fetch": "^3.3.2"
-  }
+  "dependencies": {}
 }

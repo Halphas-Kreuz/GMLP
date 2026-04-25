@@ -52,15 +52,15 @@ function presetFor(name, kind) {
 
 function printHelp() {
   console.log(`
-mediguard - Medical LLM compliance evaluator
+gmlp-auditor - Medical LLM compliance evaluator (GMLP-aligned)
 
 Usage:
-  mediguard setup
-  mediguard smoke
-  mediguard eval --module <1|2|3|4> [--limit N] [--out DIR]
-  mediguard eval --modules 1,2,3,4 [--limit N] [--out DIR]
-  mediguard eval --all [--limit N] [--out DIR]
-  mediguard eval --all --limit 3 --wizard
+  gmlp-auditor setup
+  gmlp-auditor smoke
+  gmlp-auditor eval --module <1|2|3|4> [--limit N] [--out DIR]
+  gmlp-auditor eval --modules 1,2,3,4 [--limit N] [--out DIR]
+  gmlp-auditor eval --all [--limit N] [--out DIR]
+  gmlp-auditor eval --all --limit 3 --wizard
 
 Notes:
   - This CLI does NOT store API keys. Provide keys via environment variables or the interactive prompt.
@@ -167,7 +167,7 @@ async function collectOutputs(existingOutputs) {
 }
 
 async function cmdSetup({ showNextMessage } = {}) {
-  console.log('MediGuard setup wizard (OpenAI-compatible endpoints).');
+  console.log('GMLP-Auditor setup wizard (OpenAI-compatible endpoints).');
   console.log(`Config file: ${defaultConfigPath()}`);
   console.log('');
 
@@ -191,7 +191,7 @@ async function cmdSetup({ showNextMessage } = {}) {
   if (showNextMessage !== false) {
     console.log('');
     console.log('Next: run eval with --wizard to enter keys for this session only.');
-    console.log('Example: mediguard eval --all --limit 3 --wizard');
+    console.log('Example: gmlp-auditor eval --all --limit 3 --wizard');
   }
 }
 
@@ -223,7 +223,7 @@ async function cmdEval(args) {
 }
 
 async function cmdSmoke() {
-  console.log('MediGuard smoke test (no API keys stored).');
+  console.log('GMLP-Auditor smoke test (no API keys stored).');
   console.log(`Config file: ${defaultConfigPath()}`);
   console.log('');
 
@@ -265,7 +265,7 @@ async function cmdSmoke() {
     delete process.env[candidate.apiKeyEnv];
     delete process.env[judge.apiKeyEnv];
     console.log('Okay. Not running any tests yet.');
-    console.log('When ready, run: mediguard eval --all --limit 3 --wizard');
+    console.log('When ready, run: gmlp-auditor eval --all --limit 3 --wizard');
   }
 }
 

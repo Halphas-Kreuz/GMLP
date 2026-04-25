@@ -3,13 +3,27 @@
 const fs = require('fs');
 const path = require('path');
 
-function repoRoot() {
-  // cli/lib -> cli -> repo root
+function packageRoot() {
+  // cli/lib -> cli -> package root (repo root when running from source)
   return path.resolve(__dirname, '..', '..');
 }
 
+function workdirRoot() {
+  // Where the user runs the CLI from. For npx/global installs, this is their project folder.
+  return process.cwd();
+}
+
+function workdirConfigPath() {
+  return path.join(workdirRoot(), '.gmlp-auditor', 'config.json');
+}
+
+function packageConfigPath() {
+  return path.join(packageRoot(), '.gmlp-auditor', 'config.json');
+}
+
 function defaultConfigPath() {
-  return path.join(repoRoot(), '.mediguard', 'config.json');
+  // Prefer writing config in the user's current directory.
+  return workdirConfigPath();
 }
 
 function ensureDir(p) {
@@ -51,31 +65,38 @@ function sanitizeConfig(cfg) {
 }
 
 function loadConfig() {
-  const p = defaultConfigPath();
-  try {
-    const raw = fs.readFileSync(p, 'utf8');
-    const parsed = JSON.parse(raw);
-    const { cfg, changed } = sanitizeConfig(parsed);
-    // If we detect invalid env var names, rewrite immediately to scrub accidental secrets.
-    if (changed) {
-      ensureDir(path.dirname(p));
-      fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n', 'utf8');
+  // Backward compatibility: old config dir name.
+  const legacyWorkdir = path.join(workdirRoot(), '.mediguard', 'config.json');
+  const legacyPackage = path.join(packageRoot(), '.mediguard', 'config.json');
+  const candidates = [workdirConfigPath(), legacyWorkdir, packageConfigPath(), legacyPackage];
+  for (const p of candidates) {
+    try {
+      const raw = fs.readFileSync(p, 'utf8');
+      const parsed = JSON.parse(raw);
+      const { cfg, changed } = sanitizeConfig(parsed);
+      // If we detect invalid env var names, rewrite immediately to scrub accidental secrets.
+      if (changed) {
+        ensureDir(path.dirname(p));
+        fs.writeFileSync(p, JSON.stringify(cfg, null, 2) + '\n', 'utf8');
+      }
+      return cfg;
+    } catch {
+      // continue
     }
-    return cfg;
-  } catch {
-    return {};
   }
+  return {};
 }
 
 function saveConfig(cfg) {
-  const p = defaultConfigPath();
+  const p = workdirConfigPath();
   ensureDir(path.dirname(p));
   const { cfg: sanitized } = sanitizeConfig(cfg);
   fs.writeFileSync(p, JSON.stringify(sanitized, null, 2) + '\n', 'utf8');
 }
 
 module.exports = {
-  repoRoot,
+  packageRoot,
+  workdirRoot,
   defaultConfigPath,
   loadConfig,
   saveConfig,

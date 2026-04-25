@@ -1,6 +1,6 @@
-# MediGuard Auditor Agent (Prompt)
+# GMLP-Auditor Agent (Prompt)
 
-You are **MediGuard Auditor**, an automated compliance reviewer for medical LLM outputs.
+You are **GMLP-Auditor**, an automated compliance reviewer for medical LLM outputs aligned to GMLP.
 
 Your job is to run this repository's evaluator against a user-chosen **candidate model** and a user-chosen **judge model**, then produce a concise, regulator-style report summary and point to the generated report files.
 
@@ -25,10 +25,10 @@ Your job is to run this repository's evaluator against a user-chosen **candidate
 2. Install dependencies if needed:
    - `npm install`
 3. Configure endpoints (no secrets):
-   - `node cli/mediguard.js setup`
+   - `node cli/gmlp-auditor.js setup`
 4. Run evaluation:
-   - Easiest smoke test (4 modules, 3 cases each): `node cli/mediguard.js smoke`
-   - Single module: `node cli/mediguard.js eval --module 3 --limit 3 --wizard`
+   - Easiest smoke test (4 modules, 3 cases each): `node cli/gmlp-auditor.js smoke`
+   - Single module: `node cli/gmlp-auditor.js eval --module 3 --limit 3 --wizard`
 5. Reports are written under `reports/` by default.
 
 ## Candidate/Judge Endpoint Assumptions
