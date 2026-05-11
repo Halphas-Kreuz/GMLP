@@ -3,9 +3,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const { repoRoot, loadConfig } = require('./config');
+const { packageRoot, workdirRoot, loadConfig } = require('./config');
 const { parseOneColumnCsv } = require('./csv_onecol');
 const { chatCompletions, envOr } = require('./openai_compat');
+const { promptSecret } = require('./wizard');
 
 function nowStamp() {
   const d = new Date();
@@ -14,7 +15,7 @@ function nowStamp() {
 }
 
 function modulePaths(moduleNum) {
-  const root = repoRoot();
+  const root = packageRoot();
   return {
     csv: path.join(root, 'data', `questions_module${moduleNum}.csv`),
     candidatePrompt: path.join(root, 'prompts', 'candidate_common.txt'),
@@ -37,7 +38,7 @@ function writeReport(outDir, moduleNum, report) {
   fs.writeFileSync(`${base}.json`, JSON.stringify(report, null, 2) + '\n', 'utf8');
 
   const lines = [];
-  lines.push(`# MediGuard Report - Module ${moduleNum}`);
+  lines.push(`# GMLP-Auditor Report - Module ${moduleNum}`);
   lines.push('');
   lines.push(`Generated: ${new Date().toISOString()}`);
   lines.push('');
@@ -68,17 +69,26 @@ function writeReport(outDir, moduleNum, report) {
   return { jsonPath: `${base}.json`, mdPath: `${base}.md` };
 }
 
-async function runEval({ moduleNum, limit, outDir }) {
+async function runEval({ moduleNum, limit, outDir, interactive }) {
   const cfg = loadConfig();
-  const root = repoRoot();
+  const workspace = workdirRoot();
   const { csv, candidatePrompt, judge } = modulePaths(moduleNum);
 
   const candidateCfg = cfg.candidate || {};
   const judgeCfg = cfg.judge || {};
   const outputsCfg = cfg.outputs || {};
 
-  const candidateKey = envOr(candidateCfg.apiKeyEnv, 'CANDIDATE_API_KEY');
-  const judgeKey = envOr(judgeCfg.apiKeyEnv, judgeCfg.apiKeyFallbackEnv || 'DEEPSEEK_API_KEY');
+  let candidateKey = envOr(candidateCfg.apiKeyEnv, 'CANDIDATE_API_KEY');
+  let judgeKey = envOr(judgeCfg.apiKeyEnv, judgeCfg.apiKeyFallbackEnv || 'DEEPSEEK_API_KEY');
+
+  if (!candidateKey && interactive) {
+    console.log('Candidate API key is required for this run (input hidden).');
+    candidateKey = await promptSecret(`Enter candidate API key (${candidateCfg.apiKeyEnv || 'CANDIDATE_API_KEY'})`);
+  }
+  if (!judgeKey && interactive) {
+    console.log('Judge API key is required for this run (input hidden).');
+    judgeKey = await promptSecret(`Enter judge API key (${judgeCfg.apiKeyEnv || 'JUDGE_API_KEY'})`);
+  }
 
   // Export judge settings for the existing judge scripts (keeps promptfoo compatibility too).
   if (judgeKey) process.env.JUDGE_API_KEY = judgeKey;
@@ -162,7 +172,10 @@ async function runEval({ moduleNum, limit, outDir }) {
     cases,
   };
 
-  const finalOutDir = outDir || path.join(root, outputsCfg.dir || 'reports');
+  const resolvedOutDir = outDir
+    ? (path.isAbsolute(outDir) ? outDir : path.join(workspace, outDir))
+    : path.join(workspace, outputsCfg.dir || 'reports');
+  const finalOutDir = resolvedOutDir;
   const paths = writeReport(finalOutDir, moduleNum, report);
   console.log('Report written:');
   console.log(`  ${paths.jsonPath}`);
@@ -170,4 +183,3 @@ async function runEval({ moduleNum, limit, outDir }) {
 }
 
 module.exports = { runEval };
-

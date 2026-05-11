@@ -1,0 +1,61 @@
+0 verbose cli /opt/homebrew/Cellar/node/25.8.1_1/bin/node /opt/homebrew/bin/npm
+1 info using npm@11.11.0
+2 info using node@v25.8.1
+3 silly config load:file:/opt/homebrew/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/oblivion/Desktop/GMLP/.npmrc
+5 silly config load:file:/Users/oblivion/.npmrc
+6 silly config load:file:/opt/homebrew/etc/npmrc
+7 verbose title npm pack
+8 verbose argv "pack" "--dry-run" "--cache" "./.npm-cache"
+9 verbose logfile logs-max:10 dir:/Users/oblivion/Desktop/GMLP/.npm-cache/_logs/2026-04-25T13_18_50_356Z-
+10 verbose logfile /Users/oblivion/Desktop/GMLP/.npm-cache/_logs/2026-04-25T13_18_50_356Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4496293888 maxSize:1124073472 maxEntrySize:562036736
+13 verbose shrinkwrap failed to load node_modules/.package-lock.json out of date, updated: node_modules
+14 notice
+15 notice 📦  @kaalveniiz/gmlp-auditor@0.1.0
+16 notice Tarball Contents
+17 notice 7.1kB LICENCE
+17 notice 1.4kB NPM_PUBLISHING.md
+17 notice 996B PUBLISHING.md
+17 notice 1.7kB README.md
+17 notice 2.9kB README.zh-CN.md
+17 notice 2.4kB agent/GMLP_AUDITOR_AGENT_PROMPT.md
+17 notice 1.4kB agent/START_HERE.md
+17 notice 1.1kB agent/USAGE.md
+17 notice 10.1kB cli/gmlp-auditor.js
+17 notice 3.1kB cli/lib/config.js
+17 notice 881B cli/lib/csv_onecol.js
+17 notice 6.8kB cli/lib/eval.js
+17 notice 1.6kB cli/lib/openai_compat.js
+17 notice 1.9kB cli/lib/wizard.js
+17 notice 4.6kB data/questions_module1.csv
+17 notice 3.6kB data/questions_module2.csv
+17 notice 4.4kB data/questions_module3.csv
+17 notice 3.7kB data/questions_module4.csv
+17 notice 8.9kB judges/judge_module1.js
+17 notice 9.1kB judges/judge_module2.js
+17 notice 8.8kB judges/judge_module3.js
+17 notice 9.2kB judges/judge_module4.js
+17 notice 709B package.json
+17 notice 78B prompts/candidate_common.txt
+17 notice 11.3kB prompts/judge_module1_prompt.md
+17 notice 11.5kB prompts/judge_module2_prompt.md
+17 notice 8.5kB prompts/judge_module3_prompt.md
+17 notice 12.8kB prompts/judge_module4_prompt.md
+18 notice Tarball Details
+19 notice name: @kaalveniiz/gmlp-auditor
+20 notice version: 0.1.0
+21 notice filename: kaalveniiz-gmlp-auditor-0.1.0.tgz
+22 notice package size: 40.6 kB
+23 notice unpacked size: 140.6 kB
+24 notice shasum: 75faa85daf027b6eca8570f36605fe6493170081
+25 notice integrity: sha512-FDf2bgGjsoc1I[...]Ra5+pVXjHgC3Q==
+26 notice total files: 28
+27 notice
+28 verbose cwd /Users/oblivion/Desktop/GMLP
+29 verbose os Darwin 25.3.0
+30 verbose node v25.8.1
+31 verbose npm  v11.11.0
+32 verbose exit 0
+33 info ok
